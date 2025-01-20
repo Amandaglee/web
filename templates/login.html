@@ -1,0 +1,28 @@
+{% extends 'base.html' %}
+{% block title %}
+    登录
+{% endblock %}
+{% block content %}
+<body class="text-center">     
+    <div class = "container d-flex justify-content-center align-items-center" style="min-height: 100vh;">
+        <form method="POST" action="" style="color: #666666">
+            <img class="mb-4" src="{{ url_for('static', filename='img/2.png') }}" alt="Your Image">
+            <h1 class="h3 mb-3 font-weight-normal">
+                请登录
+            </h1>
+            {{ form.hidden_tag() }}
+            {{ form.username.label(text="用户名") }}
+            {{ form.username(class="form-control", placeholder="请输入用户名") }} 
+            {{ form.password.label(text="密码") }}
+            {{ form.password(class="form-control", placeholder="请输入密码") }}
+            <br>
+            {{ form.submit(value="登录") }}
+            <br>
+            <a href="{{url_for('user.register')}}" style="color: #666666">还没有账号？点击注册！</a>
+        </form>
+        
+    </div>
+    
+</body>
+
+{% endblock %}

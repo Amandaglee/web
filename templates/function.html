@@ -1,0 +1,31 @@
+{% extends 'base.html' %}
+{% block title %}
+    function
+{% endblock %}
+{% block content %}
+    <table class="table table-hover" style="background-color: transparent; color: #666666;">
+        <thead>
+            <tr>
+                <th scope="col">ID</th>
+                <th scope="col">名称</th>
+                <th scope="col">条形码</th>
+                <th scope="col">价格</th>
+                <th scope="col">操作</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for item in items %}
+                <tr>
+                    <td>{{item.id}}</td>
+                    <td>{{item.name}}</td>
+                    <td>{{item.barcode}}</td>
+                    <td>{{item.price}}￥</td>
+                    <td>
+                        <button class="btn btn-outline btn-info">详细信息</button>
+                        <button class="btn btn-outline btn-success">购买</button>
+                    </td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+{% endblock %}

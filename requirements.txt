@@ -1,0 +1,8 @@
+flask
+flask-login
+flask-sqlalchemy
+flask-bcrypt
+flask-wtf
+flask-cors
+cozepy
+python-dotenv 

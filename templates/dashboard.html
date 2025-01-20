@@ -1,0 +1,233 @@
+{% extends 'base.html' %}
+{% block title %}
+    dashboard
+{% endblock %}
+{% block content %}
+    <body>
+        <h1> 你成功打入了内部 </h1>
+        
+        <!-- 算命对话区域 -->
+        <div class="fortune-telling-container">
+            <h2>AI算命大师</h2>
+            <div id="chat-history" class="chat-box">
+                <!-- 聊天记录将在这里显示 -->
+            </div>
+            <div class="input-area">
+                <input type="text" id="user-input" placeholder="请输入你想问的问题...">
+                <button onclick="sendMessage()" id="send-button">发送</button>
+            </div>
+        </div>
+
+        <div class="logout-container">
+            <a href="{{url_for('user.logout')}}" class="logout-btn">点击这里你可以退出</a>
+        </div>
+
+        <style>
+            .fortune-telling-container {
+                max-width: 600px;
+                margin: 20px auto;
+                padding: 20px;
+                border: 1px solid rgba(204, 204, 204, 0.5);
+                border-radius: 8px;
+                background-color: rgba(255, 255, 255, 0.3);
+                backdrop-filter: blur(10px);
+                box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            }
+
+            .chat-box {
+                height: 400px;
+                border: 1px solid rgba(238, 238, 238, 0.3);
+                padding: 15px;
+                margin-bottom: 15px;
+                overflow-y: auto;
+                background-color: rgba(255, 255, 255, 0.2);
+                border-radius: 8px;
+            }
+
+            .input-area {
+                display: flex;
+                gap: 10px;
+            }
+
+            #user-input {
+                flex: 1;
+                padding: 10px;
+                background: rgba(255, 255, 255, 0.2);
+                border: 1px solid rgba(204, 204, 204, 0.5);
+                border-radius: 4px;
+                color: #333;
+                font-size: 14px;
+            }
+
+            #user-input::placeholder {
+                color: rgba(153, 153, 153, 0.8);
+            }
+
+            #send-button {
+                padding: 10px 20px;
+                background-color: rgba(128, 128, 128, 0.7);
+                color: white;
+                border: none;
+                border-radius: 4px;
+                cursor: pointer;
+                transition: all 0.3s ease;
+                font-size: 14px;
+            }
+
+            #send-button:hover {
+                background-color: rgba(102, 102, 102, 0.8);
+                transform: translateY(-1px);
+            }
+
+            .message {
+                margin: 8px 0;
+                padding: 10px;
+                border-radius: 8px;
+                max-width: 80%;
+                word-wrap: break-word;
+            }
+
+            .user-message {
+                background-color: rgba(227, 242, 253, 0.7);
+                margin-left: 20%;
+            }
+
+            .ai-message {
+                background-color: rgba(245, 245, 245, 0.7);
+                margin-right: 20%;
+            }
+
+            .error-message {
+                color: rgba(255, 0, 0, 0.8);
+                background-color: rgba(255, 235, 238, 0.7);
+                padding: 10px;
+                border-radius: 4px;
+                margin: 5px 0;
+            }
+
+            #send-button:disabled {
+                background-color: rgba(204, 204, 204, 0.7);
+                cursor: not-allowed;
+            }
+
+            /* 自定义滚动条样式 */
+            .chat-box::-webkit-scrollbar {
+                width: 6px;
+            }
+
+            .chat-box::-webkit-scrollbar-track {
+                background: rgba(241, 241, 241, 0.1);
+            }
+
+            .chat-box::-webkit-scrollbar-thumb {
+                background: rgba(136, 136, 136, 0.5);
+                border-radius: 3px;
+            }
+
+            .chat-box::-webkit-scrollbar-thumb:hover {
+                background: rgba(85, 85, 85, 0.7);
+            }
+
+            /* 添加玻璃拟态效果 */
+            .fortune-telling-container, .chat-box, .message {
+                backdrop-filter: blur(5px);
+                -webkit-backdrop-filter: blur(5px);
+            }
+
+            .logout-container {
+                position: fixed;
+                bottom: 20px;
+                right: 20px;
+            }
+
+            .logout-btn {
+                text-decoration: none;
+                color: rgba(102, 102, 102, 0.8);
+                padding: 8px 16px;
+                border: 1px solid rgba(204, 204, 204, 0.5);
+                border-radius: 4px;
+                transition: all 0.3s;
+                background-color: rgba(255, 255, 255, 0.2);
+            }
+
+            .logout-btn:hover {
+                background-color: rgba(245, 245, 245, 0.3);
+                color: rgba(51, 51, 51, 0.9);
+            }
+        </style>
+
+        <script>
+            async function sendMessage() {
+                const input = document.getElementById('user-input');
+                const sendButton = document.getElementById('send-button');
+                const message = input.value.trim();
+                
+                if (message) {
+                    try {
+                        sendButton.disabled = true;
+                        input.disabled = true;
+                        
+                        addMessage(message, true);
+                        input.value = '';
+
+                        const loadingDiv = document.createElement('div');
+                        loadingDiv.className = 'message ai-message';
+                        loadingDiv.textContent = '正在思考中...';
+                        document.getElementById('chat-history').appendChild(loadingDiv);
+
+                        try {
+                            const response = await fetch('/api/fortune', {
+                                method: 'POST',
+                                headers: {
+                                    'Content-Type': 'application/json'
+                                },
+                                body: JSON.stringify({ message: message })
+                            });
+
+                            loadingDiv.remove();
+
+                            const data = await response.json();
+                            console.log('API Response:', data);
+
+                            if (!response.ok) {
+                                throw new Error(data.message || `服务器返回错误: ${response.status}`);
+                            }
+
+                            if (data.status === 'success' && data.response) {
+                                addMessage(data.response, false);
+                            } else {
+                                throw new Error(data.message || '未知错误');
+                            }
+                        } catch (error) {
+                            console.error('Error:', error);
+                            if (loadingDiv.parentNode) {
+                                loadingDiv.remove();
+                            }
+                            addMessage(`请求失败: ${error.message}`, false, true);
+                        }
+                    } finally {
+                        sendButton.disabled = false;
+                        input.disabled = false;
+                        input.focus();
+                    }
+                }
+            }
+
+            function addMessage(text, isUser, isError = false) {
+                const messageDiv = document.createElement('div');
+                messageDiv.className = `message ${isUser ? 'user-message' : 'ai-message'} ${isError ? 'error-message' : ''}`;
+                messageDiv.textContent = text;
+                document.getElementById('chat-history').appendChild(messageDiv);
+                messageDiv.scrollIntoView({ behavior: 'smooth' });
+            }
+
+            // 允许用户按回车发送消息
+            document.getElementById('user-input').addEventListener('keypress', function(e) {
+                if (e.key === 'Enter' && !e.shiftKey) {
+                    e.preventDefault();
+                    sendMessage();
+                }
+            });
+        </script>
+    </body>
+{% endblock %}
